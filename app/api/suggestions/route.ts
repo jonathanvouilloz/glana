@@ -3,12 +3,8 @@ import { db, tweets } from '@/db';
 import { eq, desc, sql, and, notInArray } from 'drizzle-orm';
 import { validateApiKey, unauthorizedResponse, errorResponse, successResponse } from '@/lib/auth';
 
-// GET /api/suggestions - Obtenir des suggestions d'inspiration
+// GET /api/suggestions - Obtenir des suggestions d'inspiration (public pour le dashboard)
 export async function GET(request: NextRequest) {
-  if (!validateApiKey(request)) {
-    return unauthorizedResponse();
-  }
-
   const searchParams = request.nextUrl.searchParams;
   const themeId = searchParams.get('themeId');
   const count = Math.min(parseInt(searchParams.get('count') || '5'), 20);

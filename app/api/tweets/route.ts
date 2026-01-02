@@ -4,12 +4,8 @@ import { eq, desc, ilike, and, isNull, sql } from 'drizzle-orm';
 import { validateApiKey, unauthorizedResponse, errorResponse, successResponse } from '@/lib/auth';
 import { classifyAndUpdateTweet } from '@/lib/classification';
 
-// GET /api/tweets - Liste les tweets avec filtres
+// GET /api/tweets - Liste les tweets avec filtres (public pour le dashboard)
 export async function GET(request: NextRequest) {
-  if (!validateApiKey(request)) {
-    return unauthorizedResponse();
-  }
-
   const searchParams = request.nextUrl.searchParams;
   const themeId = searchParams.get('themeId');
   const tag = searchParams.get('tag');

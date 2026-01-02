@@ -3,12 +3,8 @@ import { db, themes, tweets } from '@/db';
 import { eq, sql } from 'drizzle-orm';
 import { validateApiKey, unauthorizedResponse, errorResponse, successResponse } from '@/lib/auth';
 
-// GET /api/themes - Liste tous les thèmes
+// GET /api/themes - Liste tous les thèmes (public pour le dashboard)
 export async function GET(request: NextRequest) {
-  if (!validateApiKey(request)) {
-    return unauthorizedResponse();
-  }
-
   try {
     // Récupérer les thèmes avec le compte de tweets
     const themesWithCount = await db
