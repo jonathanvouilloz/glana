@@ -36,12 +36,8 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-// PATCH /api/tweets/:id - Modifier un tweet
+// PATCH /api/tweets/:id - Modifier un tweet (public pour le dashboard)
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
-  if (!validateApiKey(request)) {
-    return unauthorizedResponse();
-  }
-
   const { id } = await params;
 
   try {
@@ -94,12 +90,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-// DELETE /api/tweets/:id - Supprimer un tweet
+// DELETE /api/tweets/:id - Supprimer un tweet (public pour le dashboard)
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
-  if (!validateApiKey(request)) {
-    return unauthorizedResponse();
-  }
-
   const { id } = await params;
 
   try {

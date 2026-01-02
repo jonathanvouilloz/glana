@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import ConfirmModal from './ConfirmModal';
 
 interface Tweet {
   id: string;
@@ -28,6 +29,7 @@ interface TweetCardProps {
 
 export function TweetCard({ tweet, onFavoriteToggle, onDelete, onTagClick }: TweetCardProps) {
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isFavorite, setIsFavorite] = useState(tweet.isFavorite);
 
   const handleFavorite = async () => {
@@ -47,15 +49,19 @@ export function TweetCard({ tweet, onFavoriteToggle, onDelete, onTagClick }: Twe
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirm('Delete this tweet?')) return;
-
+  const handleDeleteConfirm = async () => {
     setIsDeleting(true);
     try {
-      await fetch(`/api/tweets/${tweet.id}`, { method: 'DELETE' });
-      onDelete?.(tweet.id);
+      const res = await fetch(`/api/tweets/${tweet.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        onDelete?.(tweet.id);
+      } else {
+        setIsDeleting(false);
+        setShowDeleteModal(false);
+      }
     } catch (error) {
       setIsDeleting(false);
+      setShowDeleteModal(false);
       console.error('Error deleting tweet:', error);
     }
   };
@@ -166,13 +172,25 @@ export function TweetCard({ tweet, onFavoriteToggle, onDelete, onTagClick }: Twe
         </div>
 
         <button
-          onClick={handleDelete}
+          onClick={() => setShowDeleteModal(true)}
           className="p-2 rounded-lg text-[#a1a1aa] hover:bg-red-500/10 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
           title="Delete tweet"
         >
           🗑
         </button>
       </div>
+
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="Supprimer ce tweet ?"
+        message={`Le tweet de @${tweet.authorUsername} sera définitivement supprimé de ta collection.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        onConfirm={handleDeleteConfirm}
+        onCancel={() => setShowDeleteModal(false)}
+        variant="danger"
+        isLoading={isDeleting}
+      />
     </div>
   );
 }
