@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { db, themes, tweets } from '@/db';
 import { eq, sql } from 'drizzle-orm';
-import { validateApiKey, unauthorizedResponse, errorResponse, successResponse, optionsResponse } from '@/lib/auth';
+import { errorResponse, successResponse, optionsResponse } from '@/lib/auth';
 
 export async function OPTIONS() {
   return optionsResponse();
@@ -34,12 +34,8 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST /api/themes - Créer un nouveau thème
+// POST /api/themes - Créer un nouveau thème (public pour le dashboard)
 export async function POST(request: NextRequest) {
-  if (!validateApiKey(request)) {
-    return unauthorizedResponse();
-  }
-
   try {
     const body = await request.json();
     const { name, description, color, suggestedTags } = body;

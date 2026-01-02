@@ -1,18 +1,14 @@
 import { NextRequest } from 'next/server';
 import { db, themes, tweets } from '@/db';
 import { eq } from 'drizzle-orm';
-import { validateApiKey, unauthorizedResponse, errorResponse, successResponse } from '@/lib/auth';
+import { errorResponse, successResponse } from '@/lib/auth';
 
 interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-// PATCH /api/themes/:id - Modifier un thème
+// PATCH /api/themes/:id - Modifier un thème (public pour le dashboard)
 export async function PATCH(request: NextRequest, { params }: RouteParams) {
-  if (!validateApiKey(request)) {
-    return unauthorizedResponse();
-  }
-
   const { id } = await params;
 
   try {
@@ -60,12 +56,8 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-// DELETE /api/themes/:id - Supprimer un thème
+// DELETE /api/themes/:id - Supprimer un thème (public pour le dashboard)
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
-  if (!validateApiKey(request)) {
-    return unauthorizedResponse();
-  }
-
   const { id } = await params;
 
   try {
