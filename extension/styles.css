@@ -1,0 +1,97 @@
+/* Glana Button Styles */
+
+.glana-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  color: rgb(113, 118, 123);
+  transition: all 0.2s ease;
+  margin-left: 4px;
+}
+
+.glana-btn:hover {
+  background: rgba(163, 0, 217, 0.1);
+  color: #A300D9;
+}
+
+.glana-btn.loading {
+  opacity: 0.5;
+  pointer-events: none;
+  animation: glana-pulse 1s infinite;
+}
+
+.glana-btn.saved {
+  color: #A300D9;
+}
+
+.glana-btn.error {
+  color: rgb(244, 63, 94);
+}
+
+.glana-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+@keyframes glana-pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Notification Styles */
+
+.glana-notification {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 999999;
+  animation: glana-slide-in 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.glana-notification-success {
+  background: #A300D9;
+  color: white;
+}
+
+.glana-notification-error {
+  background: #ef4444;
+  color: white;
+}
+
+.glana-notification-hide {
+  animation: glana-slide-out 0.3s ease forwards;
+}
+
+@keyframes glana-slide-in {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes glana-slide-out {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
