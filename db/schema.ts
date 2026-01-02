@@ -6,6 +6,7 @@ export const themes = pgTable('themes', {
   name: text('name').notNull().unique(),
   description: text('description'),
   color: text('color').default('#6366f1'),
+  suggestedTags: jsonb('suggested_tags').$type<string[]>().default([]),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
 });

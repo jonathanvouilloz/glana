@@ -1,6 +1,6 @@
 // Glana Popup Script
 
-const DEFAULT_API_URL = 'https://glana.ai/api';
+const DEFAULT_API_URL = 'http://localhost:3001/api';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const apiKeyInput = document.getElementById('apiKey');

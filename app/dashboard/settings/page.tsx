@@ -7,16 +7,17 @@ interface Theme {
   name: string;
   description: string | null;
   color: string;
+  suggestedTags: string[];
   tweetCount: number;
 }
 
 export default function SettingsPage() {
   const [themes, setThemes] = useState<Theme[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newTheme, setNewTheme] = useState({ name: '', description: '', color: '#6366f1' });
+  const [newTheme, setNewTheme] = useState({ name: '', description: '', color: '#6366f1', suggestedTags: '' });
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState({ name: '', description: '', color: '' });
+  const [editForm, setEditForm] = useState({ name: '', description: '', color: '', suggestedTags: '' });
 
   useEffect(() => {
     loadThemes();
@@ -34,6 +35,13 @@ export default function SettingsPage() {
     }
   };
 
+  const parseTags = (tagsString: string): string[] => {
+    return tagsString
+      .split(',')
+      .map(tag => tag.trim().toLowerCase())
+      .filter(tag => tag.length > 0);
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTheme.name.trim()) return;
@@ -43,11 +51,14 @@ export default function SettingsPage() {
       const res = await fetch('/api/themes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newTheme),
+        body: JSON.stringify({
+          ...newTheme,
+          suggestedTags: parseTags(newTheme.suggestedTags),
+        }),
       });
 
       if (res.ok) {
-        setNewTheme({ name: '', description: '', color: '#6366f1' });
+        setNewTheme({ name: '', description: '', color: '#6366f1', suggestedTags: '' });
         loadThemes();
       }
     } catch (error) {
@@ -63,6 +74,7 @@ export default function SettingsPage() {
       name: theme.name,
       description: theme.description || '',
       color: theme.color,
+      suggestedTags: (theme.suggestedTags || []).join(', '),
     });
   };
 
@@ -71,7 +83,10 @@ export default function SettingsPage() {
       await fetch(`/api/themes/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify({
+          ...editForm,
+          suggestedTags: parseTags(editForm.suggestedTags),
+        }),
       });
       setEditingId(null);
       loadThemes();
@@ -146,6 +161,18 @@ export default function SettingsPage() {
             />
           </div>
 
+          <div>
+            <label className="block text-sm text-[#a1a1aa] mb-2">Suggested Tags (comma separated)</label>
+            <input
+              type="text"
+              value={newTheme.suggestedTags}
+              onChange={(e) => setNewTheme({ ...newTheme, suggestedTags: e.target.value })}
+              placeholder="hook, storytelling, framework, tips"
+              className="w-full px-4 py-2 bg-[#0a0a0a] border border-[#27272a] rounded-lg text-white focus:outline-none focus:border-[#A300D9]"
+            />
+            <p className="text-xs text-[#71717a] mt-1">These tags guide AI classification for this theme</p>
+          </div>
+
           <button
             type="submit"
             disabled={creating || !newTheme.name.trim()}
@@ -171,65 +198,95 @@ export default function SettingsPage() {
             {themes.map(theme => (
               <div
                 key={theme.id}
-                className="flex items-center gap-4 p-4 bg-[#0a0a0a] rounded-lg"
+                className="p-4 bg-[#0a0a0a] rounded-lg"
               >
                 {editingId === theme.id ? (
-                  <>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-4">
+                      <input
+                        type="text"
+                        value={editForm.name}
+                        onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                        className="flex-1 px-3 py-1 bg-[#141414] border border-[#27272a] rounded text-white"
+                        placeholder="Theme name"
+                      />
+                      <div className="flex gap-1">
+                        {colors.slice(0, 5).map(color => (
+                          <button
+                            key={color}
+                            type="button"
+                            onClick={() => setEditForm({ ...editForm, color })}
+                            className={`w-6 h-6 rounded-full ${
+                              editForm.color === color ? 'ring-2 ring-white' : ''
+                            }`}
+                            style={{ backgroundColor: color }}
+                          />
+                        ))}
+                      </div>
+                    </div>
                     <input
                       type="text"
-                      value={editForm.name}
-                      onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                      className="flex-1 px-3 py-1 bg-[#141414] border border-[#27272a] rounded text-white"
+                      value={editForm.suggestedTags}
+                      onChange={(e) => setEditForm({ ...editForm, suggestedTags: e.target.value })}
+                      className="w-full px-3 py-1 bg-[#141414] border border-[#27272a] rounded text-white text-sm"
+                      placeholder="Tags: hook, storytelling, framework..."
                     />
-                    <div className="flex gap-1">
-                      {colors.slice(0, 5).map(color => (
-                        <button
-                          key={color}
-                          type="button"
-                          onClick={() => setEditForm({ ...editForm, color })}
-                          className={`w-6 h-6 rounded-full ${
-                            editForm.color === color ? 'ring-2 ring-white' : ''
-                          }`}
-                          style={{ backgroundColor: color }}
-                        />
-                      ))}
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleUpdate(theme.id)}
+                        className="px-3 py-1 bg-[#00D9A3] text-black rounded text-sm font-medium"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="px-3 py-1 bg-[#27272a] rounded text-sm"
+                      >
+                        Cancel
+                      </button>
                     </div>
-                    <button
-                      onClick={() => handleUpdate(theme.id)}
-                      className="px-3 py-1 bg-[#00D9A3] text-black rounded text-sm font-medium"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={() => setEditingId(null)}
-                      className="px-3 py-1 bg-[#27272a] rounded text-sm"
-                    >
-                      Cancel
-                    </button>
-                  </>
+                  </div>
                 ) : (
-                  <>
-                    <span
-                      className="w-4 h-4 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: theme.color }}
-                    />
-                    <span className="flex-1 font-medium">{theme.name}</span>
-                    <span className="text-[#a1a1aa] text-sm">
-                      {theme.tweetCount} tweets
-                    </span>
-                    <button
-                      onClick={() => handleEdit(theme)}
-                      className="px-3 py-1 bg-[#27272a] rounded text-sm hover:bg-[#3f3f46] transition-colors"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDelete(theme.id, theme.name)}
-                      className="px-3 py-1 bg-red-500/10 text-red-500 rounded text-sm hover:bg-red-500/20 transition-colors"
-                    >
-                      Delete
-                    </button>
-                  </>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-4">
+                      <span
+                        className="w-4 h-4 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: theme.color }}
+                      />
+                      <span className="flex-1 font-medium">{theme.name}</span>
+                      <span className="text-[#a1a1aa] text-sm">
+                        {theme.tweetCount} tweets
+                      </span>
+                      <button
+                        onClick={() => handleEdit(theme)}
+                        className="px-3 py-1 bg-[#27272a] rounded text-sm hover:bg-[#3f3f46] transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(theme.id, theme.name)}
+                        className="px-3 py-1 bg-red-500/10 text-red-500 rounded text-sm hover:bg-red-500/20 transition-colors"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                    {theme.suggestedTags && theme.suggestedTags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 pl-8">
+                        {theme.suggestedTags.map(tag => (
+                          <span
+                            key={tag}
+                            className="px-2 py-0.5 text-xs rounded-full"
+                            style={{
+                              backgroundColor: `${theme.color}20`,
+                              color: theme.color
+                            }}
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
             ))}

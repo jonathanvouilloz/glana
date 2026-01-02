@@ -1,6 +1,6 @@
 // Glana Background Service Worker
 
-const DEFAULT_API_URL = 'https://glana.ai/api';
+const DEFAULT_API_URL = 'http://localhost:3001/api';
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'saveTweet') {

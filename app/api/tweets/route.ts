@@ -1,8 +1,12 @@
 import { NextRequest } from 'next/server';
 import { db, tweets, themes } from '@/db';
 import { eq, desc, ilike, and, isNull, sql } from 'drizzle-orm';
-import { validateApiKey, unauthorizedResponse, errorResponse, successResponse } from '@/lib/auth';
+import { validateApiKey, unauthorizedResponse, errorResponse, successResponse, optionsResponse } from '@/lib/auth';
 import { classifyAndUpdateTweet } from '@/lib/classification';
+
+export async function OPTIONS() {
+  return optionsResponse();
+}
 
 // GET /api/tweets - Liste les tweets avec filtres (public pour le dashboard)
 export async function GET(request: NextRequest) {

@@ -1,7 +1,11 @@
 import { NextRequest } from 'next/server';
 import { db, tweets, themes } from '@/db';
 import { eq, desc, sql } from 'drizzle-orm';
-import { validateApiKey, unauthorizedResponse, errorResponse, successResponse } from '@/lib/auth';
+import { validateApiKey, unauthorizedResponse, errorResponse, successResponse, optionsResponse } from '@/lib/auth';
+
+export async function OPTIONS() {
+  return optionsResponse();
+}
 
 // GET /api/stats - Statistiques de la bibliothèque (public pour le dashboard)
 export async function GET(request: NextRequest) {

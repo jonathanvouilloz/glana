@@ -8,15 +8,21 @@ const anthropic = new Anthropic({
 
 const CLASSIFICATION_PROMPT = `Tu es un assistant qui analyse des tweets pour une bibliothèque de "swipe file" (collection d'inspirations pour créateur de contenu).
 
-THÈMES DISPONIBLES:
+THÈMES ET TAGS SUGGÉRÉS:
 {themes}
+
+RÈGLES DE CLASSIFICATION:
+1. Un seul thème principal par tweet
+2. 2-5 tags par tweet (priorité aux tags suggérés ci-dessus, mais tu peux en proposer d'autres si pertinent)
+3. Si métaphore/histoire → classifier selon la leçon sous-jacente, pas le contenu littéral
+4. Si incertain → défaut à "Entrepreneurship"
 
 TWEET À ANALYSER:
 "{content}"
 
 Analyse ce tweet et retourne un JSON avec:
 1. suggestedTheme: Le nom du thème le plus approprié parmi ceux disponibles, OU un nouveau thème suggéré si aucun ne correspond (max 3 mots)
-2. suggestedTags: 2-5 tags descriptifs (en français, lowercase, sans #)
+2. suggestedTags: 2-5 tags descriptifs (priorité aux tags suggérés du thème choisi, lowercase, sans #)
 3. hookType: Le type d'accroche utilisé parmi: "question", "statement", "story", "statistic", "controversial", "how-to", "list", "personal", "other"
 4. tone: Le ton général parmi: "inspirational", "educational", "humorous", "controversial", "personal", "professional", "provocative"
 5. summary: Résumé en 1 phrase de pourquoi ce tweet est inspirant/utile
@@ -31,10 +37,26 @@ export interface ClassificationResult {
   summary: string;
 }
 
-export async function classifyTweet(content: string, existingThemes: string[]): Promise<ClassificationResult> {
-  const themesText = existingThemes.length > 0
-    ? existingThemes.join(', ')
-    : 'Aucun thème existant - suggère-en un nouveau';
+interface ThemeWithTags {
+  name: string;
+  suggestedTags: string[];
+}
+
+export async function classifyTweet(content: string, themesWithTags: ThemeWithTags[]): Promise<ClassificationResult> {
+  let themesText: string;
+
+  if (themesWithTags.length > 0) {
+    themesText = themesWithTags
+      .map(t => {
+        const tags = t.suggestedTags && t.suggestedTags.length > 0
+          ? t.suggestedTags.join(', ')
+          : 'aucun tag suggéré';
+        return `- ${t.name}: ${tags}`;
+      })
+      .join('\n');
+  } else {
+    themesText = 'Aucun thème configuré - suggère-en un nouveau avec des tags appropriés';
+  }
 
   const response = await anthropic.messages.create({
     model: 'claude-3-haiku-20240307',
@@ -59,10 +81,13 @@ export async function classifyAndUpdateTweet(tweetId: string) {
   if (!tweet || tweet.isClassified) return;
 
   const existingThemes = await db.query.themes.findMany();
-  const themeNames = existingThemes.map(t => t.name);
+  const themesWithTags = existingThemes.map(t => ({
+    name: t.name,
+    suggestedTags: (t.suggestedTags as string[]) || []
+  }));
 
   try {
-    const analysis = await classifyTweet(tweet.content, themeNames);
+    const analysis = await classifyTweet(tweet.content, themesWithTags);
 
     // Trouver ou créer le thème
     let themeId: string | null = null;

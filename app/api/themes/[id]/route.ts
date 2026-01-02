@@ -17,7 +17,7 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
   try {
     const body = await request.json();
-    const { name, description, color } = body;
+    const { name, description, color, suggestedTags } = body;
 
     const existing = await db.query.themes.findFirst({
       where: eq(themes.id, id),
@@ -41,6 +41,10 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
 
     if (color !== undefined) {
       updateData.color = color;
+    }
+
+    if (suggestedTags !== undefined) {
+      updateData.suggestedTags = suggestedTags;
     }
 
     const [updatedTheme] = await db.update(themes)

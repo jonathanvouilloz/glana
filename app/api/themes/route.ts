@@ -1,7 +1,11 @@
 import { NextRequest } from 'next/server';
 import { db, themes, tweets } from '@/db';
 import { eq, sql } from 'drizzle-orm';
-import { validateApiKey, unauthorizedResponse, errorResponse, successResponse } from '@/lib/auth';
+import { validateApiKey, unauthorizedResponse, errorResponse, successResponse, optionsResponse } from '@/lib/auth';
+
+export async function OPTIONS() {
+  return optionsResponse();
+}
 
 // GET /api/themes - Liste tous les thèmes (public pour le dashboard)
 export async function GET(request: NextRequest) {
@@ -13,6 +17,7 @@ export async function GET(request: NextRequest) {
         name: themes.name,
         description: themes.description,
         color: themes.color,
+        suggestedTags: themes.suggestedTags,
         createdAt: themes.createdAt,
         tweetCount: sql<number>`count(${tweets.id})::int`,
       })
@@ -37,7 +42,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { name, description, color } = body;
+    const { name, description, color, suggestedTags } = body;
 
     if (!name) {
       return errorResponse('Missing required field: name');
@@ -56,6 +61,7 @@ export async function POST(request: NextRequest) {
       name,
       description: description || null,
       color: color || '#6366f1',
+      suggestedTags: suggestedTags || [],
     }).returning();
 
     return successResponse({ theme: newTheme }, 201);

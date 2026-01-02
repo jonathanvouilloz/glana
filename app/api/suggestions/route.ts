@@ -1,7 +1,11 @@
 import { NextRequest } from 'next/server';
 import { db, tweets } from '@/db';
 import { eq, desc, sql, and, notInArray } from 'drizzle-orm';
-import { validateApiKey, unauthorizedResponse, errorResponse, successResponse } from '@/lib/auth';
+import { validateApiKey, unauthorizedResponse, errorResponse, successResponse, optionsResponse } from '@/lib/auth';
+
+export async function OPTIONS() {
+  return optionsResponse();
+}
 
 // GET /api/suggestions - Obtenir des suggestions d'inspiration (public pour le dashboard)
 export async function GET(request: NextRequest) {
